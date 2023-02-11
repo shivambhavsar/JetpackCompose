@@ -3,7 +3,6 @@ package com.shivam.jetpackcompose
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,15 +17,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.shivam.jetpackcompose.ui.theme.JetpackComposeTheme
-
-const val ANIMATION_TIME = 200L
-const val DIALOG_BUILD_TIME = 300L
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -104,7 +104,9 @@ fun EnterMobile(input: MutableState<TextFieldValue>) {
 
 @Composable
 fun NextButton(input: MutableState<TextFieldValue>) {
+    var buttonState by remember { mutableStateOf(ButtonState.NEXT) }
     val showDialog = remember { mutableStateOf(false) }
+    val coroutineScope: CoroutineScope = rememberCoroutineScope()
     if (showDialog.value) {
         GreetingDialog(name = input.value.text) {
             showDialog.value = false
@@ -112,17 +114,36 @@ fun NextButton(input: MutableState<TextFieldValue>) {
     }
     IconButton(
         onClick = {
-            if (input.value.text.length == 10) showDialog.value = true
+            coroutineScope.launch {
+                buttonState = ButtonState.LOADING
+                delay(500)
+                if (input.value.text.length == 10) showDialog.value = true
+                buttonState = ButtonState.NEXT
+            }
         }, modifier = Modifier
             .size(40.dp)
             .background(color = Color.White, shape = MaterialTheme.shapes.small)
     ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_forward),
-            contentDescription = "forward arrow",
-            tint = Color.Black
-        )
+        if (buttonState == ButtonState.NEXT) {
+            Icon(
+                painter = painterResource(R.drawable.ic_forward),
+                contentDescription = "forward arrow",
+                tint = Color.Black
+            )
+        } else if (buttonState == ButtonState.LOADING) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .graphicsLayer(alpha = 5F)
+                    .size(30.dp),
+                color = MaterialTheme.colors.secondary,
+                strokeWidth = 3.dp
+            )
+        }
     }
+}
+
+enum class ButtonState {
+    NEXT, LOADING
 }
 
 @Composable
