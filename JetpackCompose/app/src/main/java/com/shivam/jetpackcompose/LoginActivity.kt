@@ -167,7 +167,7 @@ fun CloseButton(helper: AnimatedTransitionDialogHelper) {
 
 @Composable
 fun GreetingDialog(name: String, onDismiss: () -> Unit) {
-    AnimatedTransitionDialog(onDismissRequest = onDismiss) {
+    AnimatedTransitionDialog(animationType = AnimationType.CurvedEntryExit, onDismissRequest = onDismiss) {
         Greeting(name = name, it)
     }
 }
